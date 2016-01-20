@@ -29,7 +29,7 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 JINJA_ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
                                        extensions=['jinja2.ext.autoescape'])
 # set sleep time interval for local only!! #
-set_time = .2
+set_time = .02
 
 # MODELS #
 class Users(ndb.Model):
