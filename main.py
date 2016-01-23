@@ -17,6 +17,8 @@
 
 from validate import Validation
 from google.appengine.ext import ndb
+
+
 from logging import debug
 import cgi
 import os
@@ -29,9 +31,11 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 JINJA_ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
                                        extensions=['jinja2.ext.autoescape'])
 # set sleep time interval for local only!! #
-set_time = .2
+set_time = .02
 
 # MODELS #
+
+
 class Users(ndb.Model):
     # Model for Users #
     user = ndb.StringProperty()
@@ -148,6 +152,7 @@ class Definition(Handler):
             self.render("definitions.html", wordlist=word_list, login=Base.login,
                         user=Base.current_user, u_image=Base.current_avatar,
                         error=Definition.error)
+            Definition.error = False
         else:
             self.render("definitions.html",  wordlist=word_list, login=Base.login,
                         user=Base.current_user, u_image=Base.current_avatar)
@@ -190,6 +195,7 @@ class ForumPage(Handler):
         if ForumPage.error is False:
             # looks good process page #
             debug('Total posts = {}'.format(total_posts))
+
             self.render("/forum.html",
                         post_list=posts,
                         login=Base.login,
@@ -226,6 +232,7 @@ class ForumPage(Handler):
             time.sleep(set_time)
             Base.login = True
             self.redirect('/forum.html')
+
         else:
             # set error flag #
             ForumPage.error = 'Can not post a blank post..'
@@ -237,16 +244,36 @@ class MainPage(Handler):
     error = ''
 
     def get(self):
-        # test to see if registered user is or is not logged in #
+
+        is_logged = Base.login
+        if not is_logged:
+            self.redirect('/login.html')
+            return
+
         latest_post = ForumPost.query().order(-ForumPost.date).fetch(1)
-        if Base.login is False:
+        # test to see if registered user is or is not logged in #
+
+        debug('LOGOUT STATUS = {}'.format(is_logged))
+        if Base.current_user == '':
+            Base.login = False
+
+        if Base.login is False and MainPage.error is False:
+            debug('Both are False')
+            self.render("index.html", login=False, latest_post=latest_post)
+
+        elif Base.login is False and MainPage.error:
+            debug('Contains and Error')
             self.render("index.html", login=False, latest_post=latest_post, error=MainPage.error)
+            MainPage.error = False
+
         else:
+            debug('Login is True!')
             self.render("index.html",
                         login=True,
                         user=Base.current_user,
                         u_image=Base.current_avatar,
                         latest_post=latest_post)
+            # MainPage.error = False
 
     def post(self):
 
@@ -254,14 +281,23 @@ class MainPage(Handler):
         qualify_user = cgi.escape(self.request.get("username"))
         qualify_pass = cgi.escape(self.request.get("password"))
 
-        # if user has valid creds then set login flag and user info#
-        if self.check_creds(qualify_user, qualify_pass):
-            self.render("index.html", login=True,
-                        user=Base.current_user, u_image=Base.current_avatar)
+        # if user has valid creds then set login flag and user info #
+        if qualify_user and qualify_pass:
+            if self.check_creds(qualify_user, qualify_pass):
+                MainPage.error = False
+                self.render("index.html", login=True,
+                            user=Base.current_user, u_image=Base.current_avatar)
+
+
+            else:
+                # no creds did not validate, set error flag #
+                MainPage.error = 'You\'ve entered the wrong name or password..'
+                self.render("index.html", login=False, error=MainPage.error)
+                MainPage.error = False
+
         else:
-            # no creds did not validate, set error flag #
-            MainPage.error = 'You\'ve entered the wrong name or password..'
-            self.render("index.html", login=False, error=MainPage.error)
+            self.render("index.html", login=Base.login)
+
 
     def check_creds(self, user, password):
         # qualify user against user info in database#
@@ -273,6 +309,17 @@ class MainPage(Handler):
                         avatar=fields.link,
                         )
                 return True
+
+
+class Login(Handler):
+    def get(self):
+        Base.login = False
+        self.render("login.html", login=Base.login)
+
+    def post(self):
+        Base.login = False
+        self.render("login.html")
+
 
 
 class Base(Handler):
@@ -288,8 +335,7 @@ class Base(Handler):
         self.render("base.html", login=Base.login)
 
     def post(self):
-        pass
-
+        debug('logout')
 
 router = [('/', MainPage),
           ('/notes.html', NotesData),
@@ -297,6 +343,7 @@ router = [('/', MainPage),
           ('/register.html', Register),
           ('/forum.html', ForumPage),
           ('/base.html', Base),
+          ('/login.html', Login)
           ]
 app = webapp2.WSGIApplication(router, debug=True)
 

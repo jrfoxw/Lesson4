@@ -8,6 +8,8 @@
             <link rel="stylesheet" type="text/css" href="css/main.css">
             <link rel="stylesheet" type="text/css" href="css/forum.css">
             <link href='https://fonts.googleapis.com/css?family=Cinzel|Open+Sans' rel='stylesheet' type='text/css'>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+            <script src="js/main.js"></script>
         {% endblock %}
     </head>
     <body>
@@ -20,45 +22,28 @@
                     <div class="logo">The Dragons Cave</div>
 
                 </div>
+
+                {% block login %}
+                {% if login %}
                     
-                    {% block login %}
-                    {% if login %}
+
                     <div class="welcome">
                         <div id='inner_welcome'> Welcome {{ user }}</div>
-                        
-                        <img class="micro_image"src='{{ u_image }}'>
+                        <img class="micro_image" src='{{ u_image }}'>
+                        {% endif %}
+
                         {% block logout %}
-                        <form method='post' action='#' class='logout'>
-                            <input type='hidden' name='logout'>
+                        <form method='post' action='/login.html' class='logout'>
+                            <input id='js_hidden' type='hidden' name='logout' value="in">
                             <!-- will implement javascript button for lesson 5 -->
                             <!-- currently button only "works" on Home link -->
-                            <input id='js_logout' type='submit' value='logout' onclick=''>
+                            <input id='js_logout' type='submit' value='logout'>
                         </form>
-                        {% endblock logout %}
+
                     </div>
-                    {% else %}
-                    
-                    <div class ="login">
-                        
-                        <form method="post" action="/">
-                        <table>
-                            <tr>
-                                <td><label>User:</label></td>
-                                <td><input type="text" name="username"></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td><label>Pass:</label></td>
-                                <td><input type="password" name="password"></td>
-                                <td><input type="submit" value="login"></td>
-                            </tr>        
-                        </table>
-                    </form>
-                        
-                    {% endif %}
-                    </div>
-                    {% endblock login %}
+                    {% endblock %}
             {% endblock %}
+                        {% endblock %}
             </div>
                 <div class="ulnav">
                     {% block navigation %}

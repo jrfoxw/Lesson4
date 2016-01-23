@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-}
+
 {% block content %}
 
 <div class="main">
@@ -30,9 +30,11 @@
     
     
 {% else %}
-    <b> Please login or <a href="/register.html">register</a> to continue!</b>
+    <b> Please <a href="/login.html">login</a> or <a href="/register.html">register</a> to continue!</b>
 {% endif %}
 	<br>
-	<span id='error'> {{ error }} </span> 
+	{% if error %}
+	<span id='error'> {{ error }} </span>
+	{% endif %}
 </div>
 {% endblock %}
