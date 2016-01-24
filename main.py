@@ -168,6 +168,7 @@ class Definition(Handler):
             # looks good now add to DB #
             define = Definitions(word=word, definition=definition)
             define.put()
+            # for local #
             time.sleep(set_time)
             Base.login = True
             self.redirect('/definitions.html')
@@ -249,8 +250,8 @@ class MainPage(Handler):
         if not is_logged:
             self.redirect('/login.html')
             return
-
-        latest_post = ForumPost.query().order(-ForumPost.date).fetch(1)
+        fetch_one = 1
+        latest_post = ForumPost.query().order(-ForumPost.date).fetch(fetch_one)
         # test to see if registered user is or is not logged in #
 
         debug('LOGOUT STATUS = {}'.format(is_logged))
